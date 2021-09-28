@@ -1,0 +1,30 @@
+#!/bin/sh
+
+if [[ $# < 1 ]]
+then
+    echo "Usage: sxtb input.xyz command.file"
+    exit
+fi
+
+INPFILE=$1
+LOGFILE=${INPFILE%.*}.log
+
+COMFIL=$2
+
+RANDOMFILE=`{ date +%s%N; echo $RANDOM; } | tr -d "\n"`
+
+touch /tmp/slurm-$RANDOMFILE
+echo /tmp/slurm-$RANDOMFILE
+
+echo "#!/bin/sh" >> /tmp/slurm-$RANDOMFILE
+echo "#SBATCH --nodes=1" >> /tmp/slurm-$RANDOMFILE
+echo "#SBATCH --tasks-per-node=1" >> /tmp/slurm-$RANDOMFILE
+echo "#SBATCH --job-name=xtb_$INPFILE" >> /tmp/slurm-$RANDOMFILE
+echo "" >> /tmp/slurm-$RANDOMFILE
+echo "export PATH=/opt/xtb_6.2.3/bin/:$PATH" >> /tmp/slurm-$RANDOMFILE
+echo "export LD_LIBRARY_PATH=/opt/xtb_6.2.3/lib64/:$PATH" >> /tmp/slurm-$RANDOMFILE
+echo "export XTBPATH=/opt/xtb_6.2.3" >> /tmp/slurm-$RANDOMFILE
+echo "" >> /tmp/slurm-$RANDOMFILE
+echo "xtb $INPFILE -I $COMFIL --opt > $LOGFILE" >> /tmp/slurm-$RANDOMFILE
+
+sbatch /tmp/slurm-$RANDOMFILE
